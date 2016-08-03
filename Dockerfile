@@ -1,37 +1,18 @@
-#
-# Redis Dockerfile
-#
-# https://github.com/dockerfile/redis
-#
+FROM ubuntu:trusty
+MAINTAINER Quang <ngocquangbb@gmail.com>
 
-# Pull base image.
-FROM ubuntu
+RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv C7917B12 && \
+    apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y redis-server pwgen && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# Install Redis.
-RUN \
-  cd /tmp && \
-  wget http://download.redis.io/redis-stable.tar.gz && \
-  tar xvzf redis-stable.tar.gz && \
-  cd redis-stable && \
-  make && \
-  make install && \
-  cp -f src/redis-sentinel /usr/local/bin && \
-  mkdir -p /etc/redis && \
-  cp -f *.conf /etc/redis && \
-  rm -rf /tmp/redis-stable* && \
-  sed -i 's/^\(bind .*\)$/# \1/' /etc/redis/redis.conf && \
-  sed -i 's/^\(daemonize .*\)$/# \1/' /etc/redis/redis.conf && \
-  sed -i 's/^\(dir .*\)$/# \1\ndir \/data/' /etc/redis/redis.conf && \
-  sed -i 's/^\(logfile .*\)$/# \1/' /etc/redis/redis.conf
+# Add scripts
+ADD run.sh /run.sh
 
-# Define mountable directories.
+ENV REDIS_PASS **Random**
+ENV REDIS_DIR /data
 VOLUME ["/data"]
 
-# Define working directory.
-WORKDIR /data
-
-# Define default command.
-CMD ["redis-server", "/etc/redis/redis.conf"]
-
-# Expose ports.
 EXPOSE 6379
+CMD ["/run.sh"]
